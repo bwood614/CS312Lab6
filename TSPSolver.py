@@ -150,7 +150,22 @@ class TSPSolver:
 	'''
 		
 	def fancy( self,time_allowance=60.0 ):
-		pass
+		results = {}
+		cities = self._scenario.getCities().copy()
+		start_time = time.time()
+		city = cities[0]
+		# Divide and Conquer
+
+		
+		end_time = time.time()
+		results['cost'] = solution.cost if solution is not None else math.inf
+		results['time'] = end_time - start_time
+		results['count'] = count
+		results['soln'] = solution
+		results['max'] = None
+		results['total'] = None
+		results['pruned'] = None
+		return results
 		
 
 
