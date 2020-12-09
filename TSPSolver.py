@@ -148,25 +148,48 @@ class TSPSolver:
 		best solution found.  You may use the other three field however you like.
 		algorithm</returns> 
 	'''
+	def get_x_val(self, city):
+		return city._x
 		
 	def fancy( self,time_allowance=60.0 ):
 		results = {}
 		cities = self._scenario.getCities().copy()
-		start_time = time.time()
-		city = cities[0]
-		# Divide and Conquer
+		# sort cities left to right
+		cities.sort(key=self.get_x_val)
 
+		start_time = time.time()
+		
+		# Divide and Conquer
+		solution = self.dcTsp(cities)
 		
 		end_time = time.time()
 		results['cost'] = solution.cost if solution is not None else math.inf
 		results['time'] = end_time - start_time
-		results['count'] = count
+		results['count'] = None
 		results['soln'] = solution
 		results['max'] = None
 		results['total'] = None
 		results['pruned'] = None
 		return results
+
+	def dcTsp(self, cities):
+		# base case
+		if len(cities) == 3:
+			# return subsolution w/ optimal route between 3 cities
+			if TSPSolution(cities).cost < TSPSolution(cities[:]).cost:
+				return TSPSolution(cities)
+			else:
+				return TSPSolution(cities[:])
+
+		else:
+			leftCities = cities[0:len(cities)//2]
+			rightCities = cities[len(cities)//2:len(cities)]
+			leftSubsolution = self.dcTsp(leftCities)
+			rightSubsolution = self.dcTsp(rightCities)
+			return self.mergeRoutes(leftSubsolution, rightSubsolution)
 		
-
-
-
+	def mergeRoutes(self, leftSubsolution, rightSubsolution):
+		# returns TSPSolution
+		# find 2 adjacent edges w/ smallest combined cost to connect left and right subroute
+		# if subroutes are rotataing opposite directions, cross edges to maintain directionality
+		pass
