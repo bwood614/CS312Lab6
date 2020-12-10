@@ -177,3 +177,35 @@ class City:
 
 		return int(math.ceil(cost * self.MAP_SCALE))
 
+
+class CityNode:
+	def __init__(self, index):
+		self._index = index
+		self._in = []
+		self._out = []
+
+	def addIn(self, city):
+		self._in.append(city)
+
+	def removeIn(self, city):
+		if city in self._in:
+			self._in.remove(city)
+			return True
+		else:
+			return False
+
+	def addOut(self, city):
+		self._out.append(city)
+
+	def removeOut(self, city):
+		if city in self._out:
+			self._out.remove(city)
+			return True
+		else:
+			return False
+
+	def valid(self):
+		if len(self._in) == 1 and len(self._out) == 1:
+			return True
+		else:
+			return False
