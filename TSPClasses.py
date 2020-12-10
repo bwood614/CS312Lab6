@@ -179,33 +179,54 @@ class City:
 
 
 class CityNode:
-	def __init__(self, index):
-		self._index = index
-		self._in = []
-		self._out = []
+	def __init__(self, route):
+		self.route = route
+		self.avg_x = 0.
+		self.avg_y = 0.
+		self.avg_elev = 0.
 
-	def addIn(self, city):
-		self._in.append(city)
+		for city in route:
+			self.avg_x += city._x
+			self.avg_y += city._y
+			self.avg_elev += city._elevation
+		self.avg_x /= len(route)
+		self.avg_y /= len(route)
+		self.avg_elev /= len(route)
 
-	def removeIn(self, city):
-		if city in self._in:
-			self._in.remove(city)
-			return True
-		else:
-			return False
+	def _distance_to_other_node(self, city, other_node):
+		cost = math.sqrt( (other_node.avg_x - city._x)**2 +
+		                  (other_node.avg_y - city._y)**2 )
 
-	def addOut(self, city):
-		self._out.append(city)
+		cost += (other_node.avg_elev - city._elevation)
+		if cost < 0.0:
+			cost = 0.0
 
-	def removeOut(self, city):
-		if city in self._out:
-			self._out.remove(city)
-			return True
-		else:
-			return False
+		return int(math.ceil(cost * 1000.0))
 
-	def valid(self):
-		if len(self._in) == 1 and len(self._out) == 1:
-			return True
-		else:
-			return False
+	def shortest_path_to_node(self, other_node, invalid_cities=None):
+		if invalid_cities is None:
+			invalid_cities = []
+
+		cities = sorted(self.route.copy(), key=lambda c: self._distance_to_other_node(c, other_node))
+		for city in cities:
+			if city in invalid_cities:
+				continue
+			other_cities = sorted(other_node.route.copy(), key=lambda c: city.costTo(c))
+			for o_city in other_cities:
+				if o_city in invalid_cities:
+					continue
+				if city.costTo(o_city) < np.inf:
+					return [city, o_city]
+
+		return None
+
+	def merge_with(self, other_node):
+
+		path_from = self.shortest_path_to_node(other_node)
+		if path_from is None:
+			return None
+
+		path_to = other_node.shortest_path_to_node(self, path_from)
+
+
+
