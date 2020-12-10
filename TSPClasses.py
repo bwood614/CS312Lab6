@@ -178,7 +178,7 @@ class City:
 		return int(math.ceil(cost * self.MAP_SCALE))
 
 
-class CityNode:
+class CityCluster:
 	def __init__(self, route):
 		self.route = route
 		self.avg_x = 0.
@@ -193,7 +193,7 @@ class CityNode:
 		self.avg_y /= len(route)
 		self.avg_elev /= len(route)
 
-	def _distance_to_other_node(self, city, other_node):
+	def _avg_distance_to(self, city, other_node):
 		cost = math.sqrt( (other_node.avg_x - city._x)**2 +
 		                  (other_node.avg_y - city._y)**2 )
 
@@ -203,30 +203,42 @@ class CityNode:
 
 		return int(math.ceil(cost * 1000.0))
 
-	def shortest_path_to_node(self, other_node, invalid_cities=None):
+	def shortest_path_between_nodes(self, other_node, invalid_cities=None):
 		if invalid_cities is None:
 			invalid_cities = []
 
-		cities = sorted(self.route.copy(), key=lambda c: self._distance_to_other_node(c, other_node))
-		for city in cities:
-			if city in invalid_cities:
+		cities = sorted(self.route.copy(), key=lambda c: self._avg_distance_to(c, other_node))
+		for leaving_edge_1 in cities:
+			if leaving_edge_1 in invalid_cities:
 				continue
-			other_cities = sorted(other_node.route.copy(), key=lambda c: city.costTo(c))
-			for o_city in other_cities:
-				if o_city in invalid_cities:
-					continue
-				if city.costTo(o_city) < np.inf:
-					return [city, o_city]
 
-		return None
+			other_cities = sorted(other_node.route.copy(), key=lambda c: leaving_edge_1.costTo(c))
+			for leaving_edge_2 in other_cities:
+				if leaving_edge_2 in invalid_cities:
+					continue
+
+				incoming_edge_1 = other_node.route[(other_node.route.index(leaving_edge_2) - 1) % len(other_node.route)]
+				incoming_edge_2 = self.route[(self.route.index(leaving_edge_1) + 1) % len(self.route)]
+
+				if leaving_edge_1.costTo(leaving_edge_2) < np.inf and incoming_edge_1.costTo(incoming_edge_2) < np.inf:
+					return [leaving_edge_1, leaving_edge_2]
+
+		return None, None
 
 	def merge_with(self, other_node):
 
-		path_from = self.shortest_path_to_node(other_node)
-		if path_from is None:
+		path_to_other = self.shortest_path_between_nodes(other_node)
+		if path_to_other is None:
 			return None
 
-		path_to = other_node.shortest_path_to_node(self, path_from)
+		new_route = []
+		for city in self.route:
+			new_route.append(city)
+			if city is path_to_other[0]:
+				o_route = other_node.route
+				o_start_idx = o_route.index(path_to_other[1])
+				for i in range(len(o_route)):
+					new_route.append(o_route[(o_start_idx + i) % len(o_route)])
 
-
+		return CityCluster(new_route)
 
