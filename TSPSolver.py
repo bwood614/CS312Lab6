@@ -160,7 +160,8 @@ class TSPSolver:
 		start_time = time.time()
 		
 		# Divide and Conquer
-		solution = self.dcTsp(cities)
+		cityClusterSolution = self.dcTsp(cities)
+		solution = TSPSolution(cityClusterSolution.route)
 		
 		end_time = time.time()
 		results['cost'] = solution.cost if solution is not None else math.inf
@@ -178,20 +179,17 @@ class TSPSolver:
 		if len(cities) == 3:
 			# return subsolution w/ optimal route between 3 cities
 			if TSPSolution(cities).cost < TSPSolution(cities[::-1]).cost:
-				return TSPSolution(cities)
+				return CityCluster(cities)
 			else:
-				return TSPSolution(cities[::-1])
+				return CityCluster(cities[::-1])
 
 		else:
 			# TODO: Handle when 2 clusters can't be merged.
 			leftCities = cities[0:len(cities)//2]
 			rightCities = cities[len(cities)//2:len(cities)]
-			leftSubsolution = self.dcTsp(leftCities)
-			rightSubsolution = self.dcTsp(rightCities)
-			return self.mergeRoutes(leftSubsolution, rightSubsolution)
+			leftCityCluster = self.dcTsp(leftCities)
+			rightCityCluster = self.dcTsp(rightCities)
+			return self.mergeRoutes(leftCityCluster, rightCityCluster)
 		
-	def mergeRoutes(self, leftSubsolution, rightSubsolution):
-		# returns TSPSolution
-		# find 2 adjacent edges w/ smallest combined cost to connect left and right subroute
-		# if subroutes are rotating opposite directions, cross edges to maintain directionality
-		pass
+	def mergeRoutes(self, leftCityCluster, rightCityCluster):
+		return leftCityCluster.merge_with(rightCityCluster)

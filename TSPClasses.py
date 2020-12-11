@@ -239,3 +239,14 @@ class CityCluster:
 
 		return CityCluster(new_route)
 
+	def merge_with2(self, other_cluster):
+		minCost = np.inf
+		minCity1 = None
+		minCity2 = None
+		for city1 in self.route:
+			for city2 in other_cluster.route:
+
+				costThere = city1.costTo(city2)
+
+
+
