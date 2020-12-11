@@ -224,7 +224,7 @@ class CityCluster:
 
 	def merge_with(self, other_node):
 
-		path_to_other = self.shortest_path_between_cluster(other_node)
+		path_to_other = self.shortest_path_between_cluster2(other_node)
 		if path_to_other is None:
 			return None
 
@@ -239,14 +239,24 @@ class CityCluster:
 
 		return CityCluster(new_route)
 
-	def merge_with2(self, other_cluster):
+	def shortest_path_between_cluster2(self, other_cluster):
 		minCost = np.inf
 		minCity1 = None
 		minCity2 = None
 		for city1 in self.route:
 			for city2 in other_cluster.route:
-
-				costThere = city1.costTo(city2)
+				city3 = other_cluster.route[(other_cluster.route.index(city2) - 1) % len(other_cluster.route)]
+				city4 = self.route[(self.route.index(city1) + 1) % len(self.route)]
+				cost = city1.costTo(city2) + city3.costTo(city4) - city1.costTo(city4) - city3.costTo(city2)
+				if cost < minCost:
+					minCost = cost
+					minCity1 = city1
+					minCity2 = city2
+		if minCost < np.inf:
+			return [minCity1, minCity2]
+		else:
+			return None
+		
 
 
 

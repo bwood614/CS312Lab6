@@ -150,17 +150,18 @@ class TSPSolver:
 	'''
 	def get_x_val(self, city):
 		return city._x
+	
+	def get_y_val(self, city):
+		return city._y
 		
 	def fancy(self, time_allowance=60.0):
 		results = {}
 		cities = self._scenario.getCities().copy()
-		# sort cities left to right
-		cities.sort(key=self.get_x_val)
 
 		start_time = time.time()
 		
 		# Divide and Conquer
-		cityClusterSolution = self.dcTsp(cities)
+		cityClusterSolution = self.dcTsp(cities, "vertical")
 		solution = TSPSolution(cityClusterSolution.route)
 		
 		end_time = time.time()
@@ -173,10 +174,11 @@ class TSPSolver:
 		results['pruned'] = None
 		return results
 
-	def dcTsp(self, cities):
-		# base case
-		# TODO: Do base cases 1 & 2 OR 4 & 5
-		if len(cities) == 3:
+	def dcTsp(self, cities, split_direction):
+		# base cases
+		if len(cities) < 3:
+			return CityCluster(cities)
+		elif len(cities) == 3:
 			# return subsolution w/ optimal route between 3 cities
 			if TSPSolution(cities).cost < TSPSolution(cities[::-1]).cost:
 				return CityCluster(cities)
@@ -184,12 +186,16 @@ class TSPSolver:
 				return CityCluster(cities[::-1])
 
 		else:
-			# TODO: Handle when 2 clusters can't be merged.
+			new_split_direction = ""
+			if split_direction == "vertical":
+				cities.sort(key=self.get_x_val)
+				new_split_direction = "horizontal"
+			else:
+				cities.sort(key=self.get_y_val)
+				new_split_direction = "vertical"
+
 			leftCities = cities[0:len(cities)//2]
 			rightCities = cities[len(cities)//2:len(cities)]
-			leftCityCluster = self.dcTsp(leftCities)
-			rightCityCluster = self.dcTsp(rightCities)
-			return self.mergeRoutes(leftCityCluster, rightCityCluster)
-		
-	def mergeRoutes(self, leftCityCluster, rightCityCluster):
-		return leftCityCluster.merge_with(rightCityCluster)
+			leftCityCluster = self.dcTsp(leftCities, new_split_direction)
+			rightCityCluster = self.dcTsp(rightCities, new_split_direction)
+			return leftCityCluster.merge_with(rightCityCluster)
