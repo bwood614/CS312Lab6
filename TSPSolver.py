@@ -151,7 +151,7 @@ class TSPSolver:
 	def get_x_val(self, city):
 		return city._x
 		
-	def fancy( self,time_allowance=60.0 ):
+	def fancy(self, time_allowance=60.0):
 		results = {}
 		cities = self._scenario.getCities().copy()
 		# sort cities left to right
@@ -174,14 +174,16 @@ class TSPSolver:
 
 	def dcTsp(self, cities):
 		# base case
+		# TODO: Do base cases 1 & 2 OR 4 & 5
 		if len(cities) == 3:
 			# return subsolution w/ optimal route between 3 cities
-			if TSPSolution(cities).cost < TSPSolution(cities[:]).cost:
+			if TSPSolution(cities).cost < TSPSolution(cities[::-1]).cost:
 				return TSPSolution(cities)
 			else:
-				return TSPSolution(cities[:])
+				return TSPSolution(cities[::-1])
 
 		else:
+			# TODO: Handle when 2 clusters can't be merged.
 			leftCities = cities[0:len(cities)//2]
 			rightCities = cities[len(cities)//2:len(cities)]
 			leftSubsolution = self.dcTsp(leftCities)
@@ -191,5 +193,5 @@ class TSPSolver:
 	def mergeRoutes(self, leftSubsolution, rightSubsolution):
 		# returns TSPSolution
 		# find 2 adjacent edges w/ smallest combined cost to connect left and right subroute
-		# if subroutes are rotataing opposite directions, cross edges to maintain directionality
+		# if subroutes are rotating opposite directions, cross edges to maintain directionality
 		pass
