@@ -179,12 +179,16 @@ class City:
 
 
 class CityCluster:
-	def __init__(self, route):
+	"""
+	Note: Only works for clusters of 3+ cities! (Maybe 2+?)
+	"""
+	def __init__(self, route: list):
 		self.route = route
 		self.avg_x = 0.
 		self.avg_y = 0.
 		self.avg_elev = 0.
 
+		# Optimization: use merged cities' averages
 		for city in route:
 			self.avg_x += city._x
 			self.avg_y += city._y
@@ -203,31 +207,24 @@ class CityCluster:
 
 		return int(math.ceil(cost * 1000.0))
 
-	def shortest_path_between_nodes(self, other_node, invalid_cities=None):
-		if invalid_cities is None:
-			invalid_cities = []
-
+	def shortest_path_between_cluster(self, other_node):
+		# 1 ---> 2
+		# 4 <--- 3
 		cities = sorted(self.route.copy(), key=lambda c: self._avg_distance_to(c, other_node))
-		for leaving_edge_1 in cities:
-			if leaving_edge_1 in invalid_cities:
-				continue
+		for city_1 in cities:
+			other_cities = sorted(other_node.route.copy(), key=lambda c: city_1.costTo(c))
+			for city_2 in other_cities:
+				city_3 = other_node.route[(other_node.route.index(city_2) - 1) % len(other_node.route)]
+				city_4 = self.route[(self.route.index(city_1) + 1) % len(self.route)]
 
-			other_cities = sorted(other_node.route.copy(), key=lambda c: leaving_edge_1.costTo(c))
-			for leaving_edge_2 in other_cities:
-				if leaving_edge_2 in invalid_cities:
-					continue
+				if city_1.costTo(city_2) < np.inf and city_3.costTo(city_4) < np.inf:
+					return [city_1, city_2]
 
-				incoming_edge_1 = other_node.route[(other_node.route.index(leaving_edge_2) - 1) % len(other_node.route)]
-				incoming_edge_2 = self.route[(self.route.index(leaving_edge_1) + 1) % len(self.route)]
-
-				if leaving_edge_1.costTo(leaving_edge_2) < np.inf and incoming_edge_1.costTo(incoming_edge_2) < np.inf:
-					return [leaving_edge_1, leaving_edge_2]
-
-		return None, None
+		return None
 
 	def merge_with(self, other_node):
 
-		path_to_other = self.shortest_path_between_nodes(other_node)
+		path_to_other = self.shortest_path_between_cluster(other_node)
 		if path_to_other is None:
 			return None
 

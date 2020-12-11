@@ -174,6 +174,7 @@ class TSPSolver:
 
 	def dcTsp(self, cities):
 		# base case
+		# TODO: Do base cases 1 & 2 OR 4 & 5
 		if len(cities) == 3:
 			# return subsolution w/ optimal route between 3 cities
 			if TSPSolution(cities).cost < TSPSolution(cities[::-1]).cost:
@@ -182,6 +183,7 @@ class TSPSolver:
 				return TSPSolution(cities[::-1])
 
 		else:
+			# TODO: Handle when 2 clusters can't be merged.
 			leftCities = cities[0:len(cities)//2]
 			rightCities = cities[len(cities)//2:len(cities)]
 			leftSubsolution = self.dcTsp(leftCities)
